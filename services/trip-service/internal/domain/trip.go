@@ -9,7 +9,8 @@ import (
 type TripModel struct {
 	ID       primitive.ObjectID
 	UserID   string
-	RideFare RideFareModel
+	Status string
+	RideFare *RideFareModel
 }
 
 type TripRepository interface {
