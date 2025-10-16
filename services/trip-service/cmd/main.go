@@ -25,7 +25,7 @@ func main() {
 
 	httphandler := h.HttpHandler{Service: svc}
 
-	mux.HandleFunc("GET /preview", httphandler.HandleTripPreview)
+	mux.HandleFunc("POST /preview", httphandler.HandleTripPreview)
 
 	server := &http.Server{
 		Addr:    httpAddr,
