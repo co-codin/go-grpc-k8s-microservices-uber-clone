@@ -30,3 +30,11 @@ func NewTripServiceClient() (*tripServiceClient, error) {
 		conn: conn,
 	}, nil
 }
+
+func (c *tripServiceClient) Close() {
+	if c.conn != nil {
+		if err := c.conn.Close(); err != nil {
+			return
+		}
+	}
+}
