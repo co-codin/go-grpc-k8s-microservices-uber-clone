@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/signal"
+	"ride-sharing/services/trip-service/internal/infrastructure/grpc/grpc"
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
 	"ride-sharing/services/trip-service/internal/service"
 	"syscall"
@@ -19,7 +19,6 @@ var GrpcAddr = ":9093"
 func main() {
 	inmemRepo := repository.NewInmemRepository()
 	svc := service.NewService(inmemRepo)
-	mux := http.NewServeMux()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -37,6 +36,8 @@ func main() {
 	}
 
 	grpcServer := grpcserver.NewServer()
+
+	grpc.NewgRPCHandler(grpcServer, svc)
 
 	log.Printf("Starting gRPC server Trip service on port: %s", lis.Addr().String())
 
