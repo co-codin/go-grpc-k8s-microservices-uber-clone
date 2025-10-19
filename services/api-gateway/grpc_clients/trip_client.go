@@ -27,5 +27,6 @@ func NewTripServiceClient() (*tripServiceClient, error) {
 
 	return &tripServiceClient{
 		Client: client,
-	}
+		conn: conn,
+	}, nil
 }
