@@ -15,21 +15,26 @@ spec:
       containers:
         - name: driver-service
           image: ride-sharing/driver-service
+          imagePullPolicy: Never
           ports:
-            - containerPort: 8081
+            - containerPort: 9092
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "125m"
+              memory: "64Mi"
+              cpu: "100m"
             limits:
               memory: "128Mi"
-              cpu: "125m"
+              cpu: "200m"
           env:
-            # Accessing an env variable from the app-config config map
-            - name: GATEWAY_HTTP_ADDR
+            - name: RABBITMQ_URI
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: uri
+            - name: JAEGER_ENDPOINT
               valueFrom:
                 configMapKeyRef:
-                  key: GATEWAY_HTTP_ADDR
+                  key: JAEGER_ENDPOINT
                   name: app-config
 ---
 apiVersion: v1
@@ -37,9 +42,10 @@ kind: Service
 metadata:
   name: driver-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-    - port: 8081
-      targetPort: 8081
+    - port: 9092
+      name: grpc
+      targetPort: 9092
   selector:
     app: driver-service
