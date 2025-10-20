@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 	"ride-sharing/services/trip-service/internal/domain"
-	"ride-sharing/shared/types"
 	tripTypes "ride-sharing/services/trip-service/pkg/types"
+	"ride-sharing/shared/types"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -55,4 +55,12 @@ func (s *service) GetRoute(ctx context.Context, pickup, destination *types.Coord
 	}
 
 	return &routeResp, nil
+}
+
+func (s *service) EstimatePackagesPriceWithRoute(route tripTypes.OsrmApiResponse) []*domain.RideFareModel {
+	return nil
+}
+
+func (s *service) GenerateTripFares(ctx context.Context, fares []*domain.RideFareModel, userID string) ([]*domain.RideFareModel, error) {
+	return nil
 }
