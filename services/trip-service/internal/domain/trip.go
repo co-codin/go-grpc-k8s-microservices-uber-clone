@@ -17,6 +17,7 @@ type TripModel struct {
 
 type TripRepository interface {
 	CreateTrip(ctx context.Context, trip *TripModel) (*TripModel, error)
+	SaveRideFare(ctx context.Context, rideFare *RideFareModel) error
 }
 
 type TripService interface {
