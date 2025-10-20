@@ -71,19 +71,21 @@ func (s *service) EstimatePackagesPriceWithRoute(route *tripTypes.OsrmApiRespons
 func (s *service) GenerateTripFares(ctx context.Context, rideFares []*domain.RideFareModel, userID string) ([]*domain.RideFareModel, error) {
 	fares := make([]*domain.RideFareModel, len(rideFares))
 
-	for _, f := range rideFares {
+	for i, f := range rideFares {
 		id := primitive.NewObjectID()
 
 		fare := &domain.RideFareModel{
-			UserID: userID,
-			ID: id,
+			UserID:            userID,
+			ID:                id,
 			TotalPriceInCents: f.TotalPriceInCents,
-			PackageSlug: f.PackageSlug,
+			PackageSlug:       f.PackageSlug,
 		}
 
 		if err := s.repo.SaveRideFare(ctx, fare); err != nil {
-		return nil, fmt.Errorf("failed to save trip fare: %w", err)
-	}
+			return nil, fmt.Errorf("failed to save trip fare: %w", err)
+		}
+
+		fares[i] = fare
 
 	}
 	return fares, nil

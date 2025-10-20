@@ -23,5 +23,6 @@ func (r *inmemRepository) CreateTrip(ctx context.Context, trip *domain.TripModel
 }
 
 func (r *inmemRepository) SaveRideFare(ctx context.Context, rideFare *domain.RideFareModel) error {
+	r.rideFares[rideFare.ID.Hex()] = rideFare
 	return nil
 }
