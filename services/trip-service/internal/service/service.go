@@ -112,6 +112,15 @@ func getBaseFares() []*domain.RideFareModel {
 	}
 }
 
+
+func (s *service) GetAndValidateFare(ctx context.Context, fareID, userID string) (*domain.RideFareModel, error) {
+	fare, err := s.repo.GetRideFareByID(ctx, fareID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ride fare: %w", err)
+	}
+	return fare, nil
+}
+
 func estimateFareRoute(f *domain.RideFareModel, route *tripTypes.OsrmApiResponse) *domain.RideFareModel {
 	pricingCfg := tripTypes.DefaultPricingConfig()
 	carPackagePrice := f.TotalPriceInCents
