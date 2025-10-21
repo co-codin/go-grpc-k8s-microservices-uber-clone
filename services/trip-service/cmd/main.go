@@ -53,7 +53,3 @@ func main() {
 	grpcServer.GracefulStop()
 
 }
-
-func cancel() {
-
-}

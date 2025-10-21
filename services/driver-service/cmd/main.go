@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"ride-sharing/services/driver-service/internal/infrastructure/grpc"
+	"ride-sharing/services/driver-service/internal/service"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -29,8 +31,10 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpcserver.NewServer()
+	svc := service.NewService()
 
+	grpcServer := grpcserver.NewServer()
+	grpc.NewGrpcHandler(grpcServer, svc)
 
 	log.Printf("Starting gRPC server driver service on port: %s", lis.Addr().String())
 
@@ -44,9 +48,5 @@ func main() {
 	<-ctx.Done()
 	log.Println("Shutting down the server")
 	grpcServer.GracefulStop()
-
-}
-
-func cancel() {
 
 }
