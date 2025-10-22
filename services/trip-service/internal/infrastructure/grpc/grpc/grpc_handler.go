@@ -15,6 +15,7 @@ import (
 type gRPCHandler struct {
 	pb.UnimplementedTripServiceServer
 	service domain.TripService
+	
 }
 
 func NewgRPCHandler(server *grpc.Server, service domain.TripService) *gRPCHandler {

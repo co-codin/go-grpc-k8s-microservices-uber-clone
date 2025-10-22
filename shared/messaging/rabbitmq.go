@@ -23,10 +23,33 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 		return nil, fmt.Errorf("fail to create channel: %v", err)
 	}
 
-	return &RabbitMQ{
+	rmq := &RabbitMQ{
 		conn:    conn,
 		Channel: ch,
-	}, nil
+	}
+
+	if err := rmq.SetupExchangesAndQueues(); err != nil {
+		rmq.Close()
+		return nil, fmt.Errorf("fail to setup exchanges and queues: %v", err)
+	}
+
+	return rmq, nil
+}
+
+func (r *RabbitMQ) SetupExchangesAndQueues() error {
+	_, err := r.Channel.QueueDeclare(
+		"hello", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *RabbitMQ) Close() {
@@ -37,4 +60,3 @@ func (r *RabbitMQ) Close() {
 		r.Channel.Close()
 	}
 }
-
