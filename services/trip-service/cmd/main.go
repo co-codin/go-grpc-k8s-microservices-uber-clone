@@ -10,9 +10,9 @@ import (
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
 	"ride-sharing/services/trip-service/internal/service"
 	"ride-sharing/shared/env"
+	"ride-sharing/shared/messaging"
 	"syscall"
 
-	amqp "github.com/rabbitmq/amqp091-go"
 	grpcserver "google.golang.org/grpc"
 )
 
@@ -38,12 +38,11 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	conn, err := amqp.Dial(RABBITMQ_URI)
+	rabbitmq, err := messaging.NewRabbitMQ(RABBITMQ_URI)
 	if err != nil {
-		log.Fatal("failed to connect to rabbitmq")
-		return
+		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer rabbitmq.Close()
 
 	grpcServer := grpcserver.NewServer()
 
