@@ -16,5 +16,5 @@ func NewTripEventPublisher(rabbitmq *messaging.RabbitMQ) *TripEventPublisher {
 }
 
 func (p *TripEventPublisher) PublishTripCreated(ctx context.Context) error {
-	return nil
+	return p.rabbitmq.PublishMessage(ctx, "hello", "hello world")
 }
