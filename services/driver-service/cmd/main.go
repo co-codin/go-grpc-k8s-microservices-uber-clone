@@ -10,6 +10,7 @@ import (
 	"ride-sharing/services/driver-service/internal/service"
 	"ride-sharing/shared/env"
 	"ride-sharing/shared/messaging"
+	driverMessaging "ride-sharing/services/driver-service/internal/infrastructure/messaging"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -45,6 +46,14 @@ func main() {
 
 	grpcServer := grpcserver.NewServer()
 	grpc.NewGrpcHandler(grpcServer, svc)
+
+	consumer := driverMessaging.NewTripConsumer(rabbitmq)
+
+	go func() {
+		if err := consumer.Listen(); err != nil {
+			log.Printf("Error starting trip consumer: %v", err)
+		}
+	}()
 
 	log.Printf("Starting gRPC server driver service on port: %s", lis.Addr().String())
 
