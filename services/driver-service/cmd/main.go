@@ -47,7 +47,7 @@ func main() {
 	grpcServer := grpcserver.NewServer()
 	grpc.NewGrpcHandler(grpcServer, svc)
 
-	consumer := driverMessaging.NewTripConsumer(rabbitmq)
+	consumer := driverMessaging.NewTripConsumer(rabbitmq, svc)
 
 	go func() {
 		if err := consumer.Listen(); err != nil {

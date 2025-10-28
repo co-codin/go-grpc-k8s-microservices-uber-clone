@@ -2,10 +2,12 @@ package service
 
 import (
 	pb "ride-sharing/shared/proto/driver"
+	"sync"
 )
 
 type Service struct {
-	drivers []*pb.Driver
+	drivers []*driverInMap
+	mu sync.RWMutex
 }
 
 type driverInMap struct {
@@ -14,6 +16,21 @@ type driverInMap struct {
 
 func NewService() *Service {
 	return &Service{
-		drivers: make([]*pb.Driver, 0),
+		drivers: make([]*driverInMap, 0),
 	}
+}
+
+func (s *Service) FindAvailableDrivers(packageType string) []string {
+	var matchingDrivers []string
+	for _, driver := range s.drivers {
+		if driver.Driver.PackageSlug == packageType {
+			matchingDrivers = append(matchingDrivers, driver.Driver.Id)
+		}
+	}
+
+	if len(matchingDrivers) == 0 {
+		return []string{}
+	}
+
+	return matchingDrivers
 }
