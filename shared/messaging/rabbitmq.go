@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"ride-sharing/shared/contracts"
@@ -94,18 +95,27 @@ func (r *RabbitMQ) ConsumeMessages(queueName string, handler MessageHandler) err
 	return nil
 }
 
-func (r *RabbitMQ) PublishMessage(ctx context.Context, routeKey string, message string) error {
+func (r *RabbitMQ) PublishMessage(ctx context.Context, routeKey string, message contracts.AmqpMessage) error {
 	log.Printf("Publishing mesage with route key %s: %s", routeKey, message)
+
+	jsonMsg, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %v", err)
+	}
+
+	msg := amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		ContentType:  "application/json",
+		Body:         jsonMsg,
+	}
+	
 	return r.Channel.PublishWithContext(ctx,
-		TripExchange,       // exchange
-		routeKey, // routing key
-		false,    // mandatory
-		false,    // immediate
-		amqp.Publishing{
-			ContentType:  "text/plain",
-			Body:         []byte(message),
-			DeliveryMode: amqp.Persistent,
-		})
+		TripExchange, // exchange
+		routeKey,     // routing key
+		false,        // mandatory
+		false,        // immediate
+		msg,
+	)
 }
 
 func (r *RabbitMQ) SetupExchangesAndQueues() error {

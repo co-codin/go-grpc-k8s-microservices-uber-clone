@@ -1,5 +1,9 @@
 package messaging
 
+import (
+	pb "ride-sharing/shared/proto/trip"
+)
+
 const (
 	FindAvailableDriversQueue        = "find_available_drivers"
 	DriverCmdTripRequestQueue        = "driver_cmd_trip_request"
@@ -11,3 +15,7 @@ const (
 	NotifyPaymentSuccessQueue        = "payment_success"
 	DeadLetterQueue                  = "dead_letter_queue"
 )
+
+type TripEventData struct {
+	Trip *pb.Trip `json:"trip"`
+}
