@@ -4,19 +4,16 @@ import (
 	"log"
 	"net/http"
 	"ride-sharing/shared/contracts"
+	"ride-sharing/shared/messaging"
 	"ride-sharing/shared/util"
-
-	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+var (
+	connManager = messaging.NewConnectionManager()
+)
 
 func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := connManager.Upgrade(w, r)
 	if err != nil {
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
 		return
@@ -28,6 +25,9 @@ func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "userID is required", http.StatusBadRequest)
 		return
 	}
+
+	connManager.Add(userID, conn)
+	defer connManager.Remove(userID)
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -41,7 +41,7 @@ func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := connManager.Upgrade(w, r)
 	if err != nil {
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
 		return
@@ -59,6 +59,8 @@ func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "packageSlug is required", http.StatusBadRequest)
 		return
 	}
+
+	connManager.Add(userID, conn)
 
 	type Driver struct {
 		Id             string `json:"id"`
@@ -83,6 +85,10 @@ func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error sending message: %v", err)
 		return
 	}
+
+	defer func() {
+		connManager.Remove(userID)
+	}()
 
 	for {
 		_, message, err := conn.ReadMessage()
