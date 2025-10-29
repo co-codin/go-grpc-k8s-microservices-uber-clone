@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	pbd "ride-sharing/shared/proto/driver"
 	pb "ride-sharing/shared/proto/trip"
 )
 
@@ -18,4 +19,31 @@ const (
 
 type TripEventData struct {
 	Trip *pb.Trip `json:"trip"`
+}
+
+type DriverTripResponseData struct {
+	Driver  *pbd.Driver `json:"driver"`
+	TripID  string      `json:"tripID"`
+	RiderID string      `json:"riderID"`
+}
+
+type PaymentEventSessionCreatedData struct {
+	TripID    string  `json:"tripID"`
+	SessionID string  `json:"sessionID"`
+	Amount    float64 `json:"amount"`
+	Currency  string  `json:"currency"`
+}
+
+type PaymentTripResponseData struct {
+	TripID   string  `json:"tripID"`
+	UserID   string  `json:"userID"`
+	DriverID string  `json:"driverID"`
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+type PaymentStatusUpdateData struct {
+	TripID   string `json:"tripID"`
+	UserID   string `json:"userID"`
+	DriverID string `json:"driverID"`
 }
