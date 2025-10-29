@@ -71,9 +71,75 @@ func (c *driverConsumer) handleTripDeclined(ctx context.Context, tripID, riderID
 		return fmt.Errorf("Trip was not found %s", tripID)
 	}
 
+	newPayload := messaging.TripEventData{
+		Trip: trip.ToProto(),
+	}
+
+	marshalledPayload, err := json.Marshal(newPayload)
+	if err != nil {
+		return err
+	}
+
+	if err := c.rabbitmq.PublishMessage(ctx, contracts.TripEventDriverNotInterested,
+		contracts.AmqpMessage{
+			OwnerID: riderID,
+			Data:    marshalledPayload,
+		},
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c *driverConsumer) handleTripAccepted(ctx context.Context, tripID string, driver *pbd.Driver) error {
+	trip, err := c.service.GetTripByID(ctx, tripID)
+	if err != nil {
+		return err
+	}
+
+	if trip == nil {
+		return fmt.Errorf("Trip was not found %s", tripID)
+	}
+
+	if err := c.service.UpdateTrip(ctx, tripID, "accepted", driver); err != nil {
+		log.Printf("Failed to update the trip: %v", err)
+		return err
+	}
+
+	trip, err = c.service.GetTripByID(ctx, tripID)
+	if err != nil {
+		return err
+	}
+
+	marshalledTrip, err := json.Marshal(trip)
+	if err != nil {
+		return err
+	}
+
+	if err := c.rabbitmq.PublishMessage(ctx, contracts.TripEventDriverAssigned, contracts.AmqpMessage{
+		OwnerID: trip.UserID,
+		Data:    marshalledTrip,
+	}); err != nil {
+		return err
+	}
+
+	marshalledPayload, err := json.Marshal(messaging.PaymentTripResponseData{
+		TripID:   tripID,
+		UserID:   trip.UserID,
+		DriverID: driver.Id,
+		Amount:   trip.RideFare.TotalPriceInCents,
+		Currency: "USD",
+	})
+
+	if err := c.rabbitmq.PublishMessage(ctx, contracts.PaymentCmdCreateSession,
+		contracts.AmqpMessage{
+			OwnerID: trip.UserID,
+			Data:    marshalledPayload,
+		},
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
