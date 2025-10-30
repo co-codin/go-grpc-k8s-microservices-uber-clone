@@ -7,10 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"ride-sharing/services/driver-service/internal/infrastructure/grpc"
+	driverMessaging "ride-sharing/services/driver-service/internal/infrastructure/messaging"
 	"ride-sharing/services/driver-service/internal/service"
 	"ride-sharing/shared/env"
 	"ride-sharing/shared/messaging"
-	driverMessaging "ride-sharing/services/driver-service/internal/infrastructure/messaging"
+	"ride-sharing/shared/tracing"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -21,7 +22,19 @@ var GrpcAddr = ":9092"
 func main() {
 	RABBITMQ_URI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@localhost:5672/")
 
+	tracerCfg := tracing.Config{
+		ServiceName:    "driver-service",
+		Environment:    env.GetString("ENVIRONMENT", "development"),
+		JaegerEndpoint: env.GetString("JaegerEndpoint", "http://jaeger:14268/api/traces"),
+	}
+
+	sh, err := tracing.InitTracer(tracerCfg)
+	if err != nil {
+		log.Fatal("Failed to init tracer: %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
+	defer sh(ctx)
 	defer cancel()
 
 	go func() {
