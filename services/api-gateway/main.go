@@ -11,15 +11,32 @@ import (
 
 	"ride-sharing/shared/env"
 	"ride-sharing/shared/messaging"
+	"ride-sharing/shared/tracing"
 )
 
 var (
 	httpAddr    = env.GetString("HTTP_ADDR", ":8081")
 	rabbitMqURI = env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+
 )
 
 func main() {
 	log.Println("Starting API Gateway")
+
+	tracerCfg := tracing.Config{
+		ServiceName: "api-gateway",
+		Environment: env.GetString("ENVIRONMENT", "development"),
+		JaegerEndpoint: env.GetString("JaegerEndpoint", "http://jaeger:14268/api/traces"),
+	}
+
+	sh, err := tracing.InitTracer(tracerCfg)
+	if err != nil {
+		log.Fatal("Failed to init tracer: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer sh(ctx)
+	defer cancel()
 
 	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
 	if err != nil {
