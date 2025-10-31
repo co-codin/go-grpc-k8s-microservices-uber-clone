@@ -46,6 +46,9 @@ func handleTripStart(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTripPreview(w http.ResponseWriter, r *http.Request) {
+	ctx, span := tracer.Start(r.Context(), "handleTripStart")
+	defer span.End()
+
 	var reqBody previewTripRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "failed to parse JSON data", http.StatusBadRequest)
@@ -65,7 +68,7 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tripService.Close()
 
-	tripPreview, err := tripService.Client.PreviewTrip(r.Context(), reqBody.ToProto())
+	tripPreview, err := tripService.Client.PreviewTrip(ctx, reqBody.ToProto())
 	if err != nil {
 		log.Printf("Failed to preview a trip: %v", err)
 		http.Error(w, "Failed to preview trip", http.StatusInternalServerError)
